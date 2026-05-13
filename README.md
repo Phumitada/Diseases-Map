@@ -1,291 +1,271 @@
-# 🏥 ระบบเฝ้าระวังโรค (Disease Surveillance System)
+# National Health Portal — Disease Surveillance System
 
-> ระบบติดตามและรายงานสถานการณ์โรคแบบ Real-time สำหรับโรงพยาบาลทั่วประเทศไทย
-> พัฒนาด้วย Full-Stack TypeScript พร้อมฐานข้อมูล 2 รูปแบบ
+> ระบบเฝ้าระวังและรายงานสถานการณ์โรคแบบ Real-time สำหรับโรงพยาบาลทั่วประเทศไทย  
+> พัฒนาด้วย Full-Stack TypeScript บน PostgreSQL และ deploy บน Railway + Vercel
 
 [![React](https://img.shields.io/badge/React-18+-61DAFB?style=flat&logo=react&logoColor=white)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-latest-47A248?style=flat&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-[![SQL Server](https://img.shields.io/badge/SQL_Server-2022-CC2927?style=flat&logo=microsoftsqlserver&logoColor=white)](https://www.microsoft.com/sql-server)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-22+-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16+-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-6+-2D3748?style=flat&logo=prisma&logoColor=white)](https://www.prisma.io/)
 
 ---
 
-## 📋 สารบัญ
+## Live Demo
 
-- [ฟีเจอร์หลัก](#-ฟีเจอร์หลัก)
-- [Tech Stack](#️-tech-stack)
-- [Architecture](#-architecture)
-- [Quick Start](#-quick-start)
-- [Services & Ports](#-services--ports)
-- [โครงสร้างโปรเจ็ค](#-โครงสร้างโปรเจ็ค)
-- [API Endpoints](#-api-endpoints)
+| | URL |
+|---|---|
+| **Frontend** | https://your-app.vercel.app |
+| **Backend API** | https://your-api.railway.app |
 
----
-
-## ✨ ฟีเจอร์หลัก
-
-| หน้า | URL | คำอธิบาย | การเข้าถึง |
-|------|-----|----------|-----------|
-| หน้าแรก | `/` | Dashboard ภาพรวมระบบ | สาธารณะ |
-| แผนที่ | `/map` | แผนที่แสดงสถานการณ์โรครายจังหวัด | สาธารณะ |
-| ข้อมูลจังหวัด | `/provinces` | ตารางสถิติโรคแยกตามจังหวัด | สาธารณะ |
-| สถิติรายงาน | `/statistics` | รายงานโรคล่าสุดจากทุกโรงพยาบาล | สาธารณะ |
-| โรงพยาบาลเครือข่าย | `/hospitals` | รายชื่อโรงพยาบาลพร้อมข้อมูล | 🔒 Login |
-| รายงานผู้ป่วย | `/reporting` | ฟอร์มส่งรายงานโรค | 🔒 Login |
-
----
-
-## 🛠️ Tech Stack
-
-<table>
-<thead>
-<tr>
-<th>Layer</th>
-<th>เทคโนโลยี</th>
-<th>หน้าที่</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Frontend</strong></td>
-<td>React 18 + Vite + TypeScript</td>
-<td>UI และการโต้ตอบกับผู้ใช้</td>
-</tr>
-<tr>
-<td><strong>Styling</strong></td>
-<td>Tailwind CSS + Lucide Icons</td>
-<td>Design System สีเขียวทางการแพทย์</td>
-</tr>
-<tr>
-<td><strong>State</strong></td>
-<td>Zustand</td>
-<td>จัดการ Auth State (JWT Token)</td>
-</tr>
-<tr>
-<td><strong>Backend</strong></td>
-<td>Node.js + Express + TypeScript</td>
-<td>REST API</td>
-</tr>
-<tr>
-<td><strong>Auth</strong></td>
-<td>JWT + bcrypt</td>
-<td>ระบบ Login สำหรับบุคลากรโรงพยาบาล</td>
-</tr>
-<tr>
-<td><strong>DB 1 (NoSQL)</strong></td>
-<td>MongoDB + Mongoose</td>
-<td>เก็บรายงานผู้ป่วย (14,000+ records)</td>
-</tr>
-<tr>
-<td><strong>DB 2 (SQL)</strong></td>
-<td>SQL Server 2022 + Prisma ORM</td>
-<td>เก็บข้อมูลโรค, โรงพยาบาล, จังหวัด, ผู้ใช้</td>
-</tr>
-<tr>
-<td><strong>Infrastructure</strong></td>
-<td>Docker + Docker Compose</td>
-<td>รัน 5 services พร้อมกัน</td>
-</tr>
-</tbody>
-</table>
-
----
-
-## 🏗️ Architecture
-
+**Demo Account**
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        Client (React)                        │
-│                     localhost:5173                           │
-└───────────────────────────┬─────────────────────────────────┘
-                            │ HTTP / REST API
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Server (Express)                          │
-│                     localhost:5207                           │
-│                                                             │
-│   /api/auth      /api/report    /api/hospital               │
-│   /api/province  /api/disease   /api/data-provinces         │
-└──────────────┬────────────────────────┬─────────────────────┘
-               │                        │
-               ▼                        ▼
-┌──────────────────────┐   ┌────────────────────────┐
-│   MongoDB            │   │   SQL Server 2022       │
-│   localhost:27017    │   │   localhost:1433         │
-│                      │   │                          │
-│   collection:        │   │   tables:                │
-│   • reports          │   │   • Province             │
-│                      │   │   • Hospital             │
-│                      │   │   • Disease              │
-│                      │   │   • User                 │
-└──────────────────────┘   └────────────────────────┘
+Username: admin_siriraj
+Password: admin123
 ```
 
-### เอกสารการออกแบบฐานข้อมูล
+---
 
-![Database Structure Diagram](เอกสารการออกแบบฐานข้อมูล.png)
+## Features
+
+| หน้า | URL | คำอธิบาย | Access |
+|------|-----|----------|--------|
+| แผนที่โรคระบาด | `/` | Heatmap แสดงสถานการณ์โรครายจังหวัดทั่วประเทศ | Public |
+| ข้อมูลรายจังหวัด | `/provinces` | ตารางสถิติโรคพร้อม filter และ pagination | Public |
+| ประวัติการรายงาน | `/statistics` | รายงานผู้ป่วยล่าสุด 50 รายการ | Public |
+| โรงพยาบาลเครือข่าย | `/hospitals` | รายชื่อโรงพยาบาลทั่วประเทศ | 🔒 Login |
+| รายงานผู้ป่วย | `/reporting` | ฟอร์มส่งรายงานโรคสำหรับบุคลากร | 🔒 Login |
 
 ---
 
-## 🚀 Quick Start
+## Tech Stack
 
-### สิ่งที่ต้องมีก่อน
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Frontend** | React 18 + Vite + TypeScript | UI และ Client-side Logic |
+| **Styling** | Tailwind CSS + Lucide Icons | Medical Green Design System |
+| **State** | Zustand | Auth State + JWT Token Management |
+| **Map** | react-simple-maps | Geographic Heatmap Visualization |
+| **HTTP** | Axios + Interceptors | Auto Token Refresh |
+| **Backend** | Node.js + Express + TypeScript | REST API |
+| **Auth** | JWT (Access + Refresh Token) + bcrypt | Stateless Authentication |
+| **Database** | PostgreSQL 16 | Single Source of Truth |
+| **ORM** | Prisma 6 | Type-safe Database Access |
+| **Cache** | Redis | Refresh Token Storage |
+| **Deploy** | Railway (API + DB) + Vercel (Frontend) | Production Infrastructure |
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (ติดตั้งแล้วเปิดทิ้งไว้)
-- Git
-- ไฟล์ `documents-3.json` (ข้อมูลรายงานผู้ป่วย ~14,000 records) วางไว้ที่ root ของโปรเจ็ค
+---
 
-> **หมายเหตุ:** ต้องเปิด Docker Desktop ให้ daemon รันก่อนทุกครั้ง มิฉะนั้นจะเกิด error `Cannot connect to the Docker daemon`
+## Architecture
 
-### 1. Clone โปรเจ็ค
+```
+┌─────────────────────────────────────────────────┐
+│              Client (React + Vite)               │
+│                  Vercel CDN                      │
+└────────────────────┬────────────────────────────┘
+                     │ HTTPS / REST API
+                     ▼
+┌─────────────────────────────────────────────────┐
+│             Express API Server                   │
+│                 Railway                          │
+│                                                  │
+│  /api/auth          /api/report                  │
+│  /api/hospital      /api/province                │
+│  /api/disease       /api/dataProvince            │
+│                                                  │
+│  Middleware: JWT Auth → Role Guard → Controller  │
+└──────────────┬──────────────────────────────────┘
+               │
+       ┌───────┴────────┐
+       ▼                ▼
+┌────────────┐   ┌─────────────┐
+│ PostgreSQL │   │    Redis     │
+│  Railway   │   │   Railway    │
+│            │   │              │
+│ Province   │   │ Refresh      │
+│ Hospital   │   │ Tokens       │
+│ Disease    │   └─────────────┘
+│ User       │
+│ Report     │
+└────────────┘
+```
+
+### Database Schema
+
+```
+Province ──< Hospital ──< User
+                │
+                └──< Report >── Disease
+```
+
+| Table | Records | Description |
+|-------|---------|-------------|
+| Province | 77 | จังหวัดทั่วประเทศไทย |
+| Hospital | 77+ | โรงพยาบาลแต่ละจังหวัด |
+| Disease | 13 | โรคพร้อม ICD-10 Code |
+| User | 12+ | บุคลากรโรงพยาบาล |
+| Report | 5,000+ | รายงานผู้ป่วย |
+
+---
+
+## Local Development
+
+### Prerequisites
+
+- Node.js 22+
+- PostgreSQL 16+
+- Redis
+- npm
+
+### Installation
 
 ```bash
+# Clone
 git clone <repository-url>
-cd Database-Project
+cd diseases-map
+
+# Install server dependencies
+cd server && npm install
+
+# Install client dependencies
+cd ../client && npm install
 ```
 
-### 2. รัน Docker
+### Environment Variables
+
+สร้างไฟล์ `server/.env`
+
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/diseases_map"
+REDIS_URL="redis://localhost:6379"
+ACCESS_TOKEN_SECRET=your_secret
+REFRESH_TOKEN_SECRET=your_secret
+ACCESS_TOKEN_EXPIRES=15m
+REFRESH_TOKEN_EXPIRES=7d
+PORT=5207
+```
+
+สร้างไฟล์ `client/.env`
+
+```env
+VITE_API_URL=http://localhost:5207/api
+```
+
+### Database Setup
 
 ```bash
-docker compose up -d
+cd server
+
+# Run migrations
+npx prisma migrate dev
+
+# Seed initial data (provinces, hospitals, diseases, users, 5000 reports)
+npx prisma db seed
 ```
 
-> ระบบจะ build และเริ่ม 5 services อัตโนมัติ ใช้เวลาประมาณ 2–3 นาทีครั้งแรก
-
-รอให้ Backend พร้อมก่อนทำขั้นตอนถัดไป (ดู log ด้วย `docker logs Backend --tail 20 -f`)
-
-### 3. Migrate ฐานข้อมูล SQL Server
+### Start Development Servers
 
 ```bash
-docker exec Backend sh -c "cd /app/server && npx prisma migrate deploy"
+# Backend (port 5207)
+cd server && npm run dev
+
+# Frontend (port 5173)
+cd client && npm run dev
 ```
 
-### 4. Seed ข้อมูลเริ่มต้น (SQL Server)
-
-```bash
-docker exec Backend sh -c "cd /app/server && npx prisma db seed"
-```
-
-> จะ seed ข้อมูล Province, Hospital, Disease, และ User เริ่มต้น
-
-### 5. Import ข้อมูลรายงาน (MongoDB)
-
-> ไฟล์ `documents-3.json` ต้องอยู่ที่ root ของโปรเจ็ค
-
-**macOS / Linux:**
-```bash
-docker cp documents-3.json DB-mongo:/tmp/documents-3.json
-
-docker exec DB-mongo mongoimport \
-  --uri "mongodb://admin:password@localhost:27017/mydatabase?authSource=admin" \
-  --collection reports \
-  --file /tmp/documents-3.json \
-  --jsonArray
-```
-
-**Windows — PowerShell หรือ Command Prompt (แนะนำ):**
-```powershell
-docker cp documents-3.json DB-mongo:/tmp/documents-3.json
-
-docker exec DB-mongo mongoimport --uri "mongodb://admin:password@localhost:27017/mydatabase?authSource=admin" --collection reports --file /tmp/documents-3.json --jsonArray
-```
-
-**Windows — Git Bash:** ⚠️ Git Bash จะแปลง path `/tmp/...` เป็น Windows path โดยอัตโนมัติ ให้ใช้ `//` นำหน้าแทน:
-```bash
-docker cp documents-3.json DB-mongo:/tmp/documents-3.json
-
-docker exec DB-mongo mongoimport \
-  --uri "mongodb://admin:password@localhost:27017/mydatabase?authSource=admin" \
-  --collection reports \
-  --file //tmp/documents-3.json \
-  --jsonArray
-```
-
-### 6. เปิดเว็บ
-
-```
-http://localhost:5173 (สามารถลอง login ได้ดด้วยแอคเค้าต่อไปนี้ username:admin_siriraj password:admin123)
-```
+เปิด http://localhost:5173
 
 ---
 
-## 🌐 Services & Ports
+## API Reference
 
-| Service | Container | Port | URL |
-|---------|-----------|------|-----|
-| Frontend (React) | `Frontend` | `5173` | http://localhost:5173 |
-| Backend (Express) | `Backend` | `5207` | http://localhost:5207 |
-| Prisma Studio | `Backend` | `5555` | http://localhost:5555 |
-| MongoDB | `DB-mongo` | `27017` | — |
-| Mongo Express (UI) | `DB-mongo-ui` | `8081` | http://localhost:8081 |
-| SQL Server | `DB-sqlserver` | `1433` | — |
+### Authentication
 
-### ข้อมูล Login สำหรับ Tools
-
-| Tool | Username | Password |
-|------|----------|----------|
-| Mongo Express | `admin` | `password` |
-
----
-
-## 📂 โครงสร้างโปรเจ็ค
-
-```
-Database-Project/
-│
-├── 📁 client/                    # Frontend (React + Vite)
-│   └── src/
-│       ├── api/                  # apiClient (axios + interceptors)
-│       ├── components/           # Navbar, Pagination
-│       ├── features/
-│       │   ├── landing/          # หน้าแรก
-│       │   ├── map/              # แผนที่จังหวัด
-│       │   ├── dash_txt/         # ตารางข้อมูลจังหวัด
-│       │   ├── hospitals/        # โรงพยาบาลเครือข่าย
-│       │   ├── statistics/       # รายงานโรคล่าสุด
-│       │   ├── login/
-│       │   └── register/
-│       ├── routes/               # React Router config
-│       └── stores/               # Zustand (authStore)
-│
-├── 📁 server/                    # Backend (Express)
-│   ├── controllers/              # Business logic
-│   ├── models/                   # Mongoose schemas
-│   ├── routes/                   # Express routes
-│   ├── middleware/               # Auth middleware (JWT)
-│   ├── prisma/                   # Schema + Migrations
-│   └── seeds/                    # Seed data
-│
-├── 📁 shared/                    # TypeScript types ใช้ร่วมกัน
-│   └── types/schema/             # IReport, IHospital, IDisease ...
-│
-├── 🐳 docker-compose.yml
-└── 📝 README.md
-```
-## 📡 API Endpoints
-
-### Auth
-| Method | Path | คำอธิบาย | Auth |
-|--------|------|----------|------|
-| `POST` | `/api/auth/login` | เข้าสู่ระบบ | — |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `POST` | `/api/auth/login` | เข้าสู่ระบบ รับ access + refresh token | — |
 | `POST` | `/api/auth/register` | สมัครสมาชิก | — |
+| `POST` | `/api/auth/refresh` | ต่ออายุ access token | — |
+| `POST` | `/api/auth/logout` | ออกจากระบบ ลบ refresh token | 🔒 |
 
 ### Reports
-| Method | Path | คำอธิบาย | Auth |
-|--------|------|----------|------|
-| `GET` | `/api/report/recent` | รายงานล่าสุด 50 รายการ | — |
-| `POST` | `/api/report` | ส่งรายงานผู้ป่วย | 🔒 |
 
-### Hospitals
-| Method | Path | คำอธิบาย | Auth |
-|--------|------|----------|------|
-| `GET` | `/api/hospital` | รายชื่อโรงพยาบาล (search, page) | 🔒 |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/api/report/recent` | รายงานล่าสุด (limit query param) | — |
+| `POST` | `/api/report` | ส่งรายงานผู้ป่วยใหม่ | 🔒 |
 
-### Provinces
-| Method | Path | คำอธิบาย | Auth |
-|--------|------|----------|------|
-| `GET` | `/api/province` | รายชื่อจังหวัด | — |
-| `GET` | `/api/data-provinces` | ข้อมูลสถิติจังหวัด | — |
+### Province Data (Map & Dashboard)
 
+| Method | Endpoint | Description | Query Params |
+|--------|----------|-------------|-------------|
+| `GET` | `/api/dataProvince` | สถิติโรคแยกจังหวัด | `page`, `limit`, `order`, `risk` |
+| `GET` | `/api/dataProvince/count` | จำนวนรวมแยกตาม type | `type` (province/disease/total) |
+| `GET` | `/api/dataProvince/map` | ข้อมูลสำหรับ heatmap | `risk`, `order`, `disease` |
+
+### Hospitals & Provinces
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/api/hospital` | รายชื่อโรงพยาบาล | 🔒 |
+| `GET` | `/api/provinces` | รายชื่อจังหวัดทั้งหมด | — |
+
+---
+
+## 📂 Project Structure
+
+```
+diseases-map/
+│
+├── client/                     # React Frontend
+│   └── src/
+│       ├── api/                # Axios client + interceptors
+│       ├── components/         # Shared components (Map, Navbar)
+│       ├── features/
+│       │   ├── map/            # Heatmap dashboard
+│       │   ├── dash_txt/       # Province statistics table
+│       │   ├── hospitals/      # Hospital directory
+│       │   ├── statistics/     # Recent reports
+│       │   └── login/
+│       ├── routes/             # React Router
+│       └── stores/             # Zustand auth store
+│
+├── server/                     # Express Backend
+│   ├── controllers/            # Request handlers
+│   ├── routes/                 # API routes
+│   ├── middleware/             # JWT auth middleware
+│   ├── prisma/                 # Schema + Migrations
+│   └── seeds/                  # Database seed scripts
+│
+└── shared/                     # Shared TypeScript types
+    └── types/schema/
+```
+
+---
+
+## Authentication Flow
+
+```
+Login → Access Token (15m) + Refresh Token (7d, stored in Redis)
+         │
+         ▼
+Request with Bearer Token
+         │
+    Token expired?
+    ├── No  → proceed
+    └── Yes → auto refresh via interceptor → retry request
+                    │
+               Refresh expired?
+               └── redirect to login
+```
+
+---
+
+## Data Model Highlights
+
+**Report aggregation** — Province heatmap คำนวณจาก groupBy hospital → join province แบบ in-memory เพื่อรองรับ filter risk level และ disease filter แบบ dynamic
+
+**Risk Classification**
+- 🟢 ปกติ: 0–500 ราย
+- 🟡 เฝ้าระวัง: 501–3,000 ราย  
+- 🔴 ฉุกเฉิน: 3,000+ ราย

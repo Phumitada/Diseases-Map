@@ -1,6 +1,5 @@
 import { Request,Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import { IHospital } from "../../shared/types/schema/hospital";
 
 const prisma = new PrismaClient()
 
